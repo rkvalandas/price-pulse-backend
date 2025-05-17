@@ -76,9 +76,17 @@ const loginUser = async (req, res) => {
       const cookieOptions = {
         httpOnly: true, // Cookie cannot be accessed via client-side JavaScript
         secure: process.env.NODE_ENV === "production", // Use secure in production
-        sameSite: "strict",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Less restrictive in production
         maxAge: rememberMe ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000, // 30 days or 1 day
       };
+
+      // Log cookie settings in production for debugging
+      if (process.env.NODE_ENV === "production") {
+        console.log("Setting auth cookie with options:", {
+          ...cookieOptions,
+          token: "***" // Don't log the actual token
+        });
+      }
 
       // Set the JWT as an HTTP-only cookie
       res.cookie("auth_token", token, cookieOptions);
@@ -100,11 +108,11 @@ const loginUser = async (req, res) => {
 // Logout User
 
 const logoutUser = (req, res) => {
-  // Clear the auth_token cookie
+  // Clear the auth_token cookie with matching settings
   res.clearCookie("auth_token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   });
 
   res.status(200).json({ message: "Logged out successfully" });

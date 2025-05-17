@@ -68,8 +68,13 @@ router.get("/verify", async (req, res) => {
       res.clearCookie("auth_token", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       });
+    }
+
+    // Log the error for debugging in production
+    if (process.env.NODE_ENV === "production") {
+      console.error("Token verification error:", error.name, error.message);
     }
 
     if (error.name === "TokenExpiredError") {
